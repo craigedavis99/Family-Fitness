@@ -1,0 +1,7 @@
+You are building the app defined in SPEC.md. Read it before making changes.
+Follow the tech stack in SPEC.md exactly — do not substitute libraries.
+Work on ONE build phase at a time; do not jump ahead.
+After completing work, tell me exactly how to test it in the browser.
+Never put SUPABASE_SERVICE_ROLE_KEY in client-side code.
+Prefer simple, readable code over clever abstractions.
+Dev server runs on port 7000 (npm run dev).

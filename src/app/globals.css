@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-energy: var(--energy);
+  --color-energy-foreground: var(--energy-foreground);
+  --font-sans: var(--font-figtree);
+  --font-display: var(--font-barlow);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  /* Athletic "trackside" — cool mist + teal, light-only for outdoor/gym readability */
+  --radius: 0.875rem;
+  --background: oklch(0.975 0.012 195);
+  --foreground: oklch(0.22 0.03 230);
+  --card: oklch(0.995 0.004 195 / 0.92);
+  --card-foreground: oklch(0.22 0.03 230);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.03 230);
+  --primary: oklch(0.42 0.1 195);
+  --primary-foreground: oklch(0.99 0.01 195);
+  --secondary: oklch(0.94 0.02 195);
+  --secondary-foreground: oklch(0.28 0.04 220);
+  --muted: oklch(0.945 0.015 195);
+  --muted-foreground: oklch(0.48 0.03 220);
+  --accent: oklch(0.93 0.03 195);
+  --accent-foreground: oklch(0.28 0.05 195);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.88 0.02 195);
+  --input: oklch(0.9 0.015 195);
+  --ring: oklch(0.42 0.1 195);
+  --success: oklch(0.55 0.12 155);
+  --success-foreground: oklch(0.25 0.05 155);
+  --warning: oklch(0.72 0.12 75);
+  --warning-foreground: oklch(0.35 0.06 60);
+  --energy: oklch(0.68 0.14 55);
+  --energy-foreground: oklch(0.28 0.06 45);
+  --atmosphere-a: oklch(0.92 0.04 195);
+  --atmosphere-b: oklch(0.94 0.035 155);
+  --atmosphere-c: oklch(0.96 0.025 85);
+  --shadow-soft: 0 1px 2px oklch(0.35 0.04 220 / 0.06), 0 8px 24px oklch(0.35 0.04 220 / 0.06);
+  --shadow-nav: 0 -1px 0 oklch(0.35 0.04 220 / 0.04), 0 -8px 32px oklch(0.35 0.04 220 / 0.08);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+    background-image:
+      radial-gradient(ellipse 120% 80% at 10% -20%, var(--atmosphere-a), transparent 55%),
+      radial-gradient(ellipse 90% 60% at 100% 0%, var(--atmosphere-b), transparent 50%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, var(--atmosphere-c), transparent 55%);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  .font-display {
+    font-family: var(--font-barlow), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: oklch(0.42 0.1 195 / 0.18);
+  }
+}
+
+@layer utilities {
+  .text-metric {
+    font-family: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .surface {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(8px);
+  }
+
+  .page-enter {
+    animation: page-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .stagger-1 {
+    animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+  }
+
+  .stagger-2 {
+    animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+  }
+
+  .stagger-3 {
+    animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+  }
+
+  .select-field {
+    @apply flex h-12 w-full rounded-xl border border-input bg-card/90 px-3.5 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm;
+  }
+
+  .tap-scale:active {
+    transform: scale(0.985);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter,
+    .stagger-1,
+    .stagger-2,
+    .stagger-3 {
+      animation: none;
+    }
+
+    .tap-scale:active {
+      transform: none;
+    }
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
