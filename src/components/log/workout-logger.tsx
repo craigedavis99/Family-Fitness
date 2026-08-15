@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogExercisePicker } from "@/components/log/log-exercise-picker";
 import { deleteWorkoutSession, saveWorkoutSession, updateWorkoutSession } from "@/app/actions/workouts";
+import { ExercisePerformanceHint } from "@/components/plan/exercise-performance-hint";
 import {
   defaultSetRows,
-  formatShortDate,
   getTopSetFromInputs,
   isNewExercisePr,
   resolveExerciseGuidance,
@@ -122,7 +122,6 @@ export function WorkoutLogger({
   const [draftExercises, setDraftExercises] = useState<DraftExercise[]>(() =>
     editingSession ? sessionToDraft(editingSession, exercises) : []
   );
-  const [showAddExercise, setShowAddExercise] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -167,7 +166,6 @@ export function WorkoutLogger({
         })),
       },
     ]);
-    setShowAddExercise(false);
   }
 
   function updateSet(exerciseIndex: number, setIndex: number, field: "weight" | "reps", value: string) {
@@ -269,8 +267,7 @@ export function WorkoutLogger({
       <CardHeader>
         <CardTitle>{editingSession ? "Edit workout" : "Log a workout"}</CardTitle>
         <CardDescription>
-          Pick a plan day to prefill exercises, or build a custom workout. Last-time guidance appears
-          for each exercise.
+          Pick a plan day to prefill exercises, then add extras below. Or build a fully custom workout.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -345,35 +342,25 @@ export function WorkoutLogger({
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold">Exercises</h3>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setShowAddExercise((value) => !value)}
-                disabled={isPending}
-              >
-                {showAddExercise ? "Close picker" : "Add exercise"}
-              </Button>
+            <div>
+              <h3 className="font-display text-base font-semibold tracking-tight">Exercises</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {draftExercises.length === 0
+                  ? "Select a plan day above, or add exercises below."
+                  : `${draftExercises.length} exercise${draftExercises.length === 1 ? "" : "s"} in this session.`}
+              </p>
             </div>
 
-            {showAddExercise ? (
+            {draftExercises.length === 0 ? (
               <LogExercisePicker
                 exercises={exercises}
                 excludeIds={draftExercises.map((item) => item.exerciseId)}
                 disabled={isPending}
                 onSelect={addExercise}
               />
-            ) : null}
-
-            {draftExercises.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Select a plan day or add exercises for a custom workout.
-              </p>
             ) : (
               draftExercises.map((exercise, exerciseIndex) => {
-                const guidance = resolveExerciseGuidance(
+                const performance = resolveExerciseGuidance(
                   exercise.exerciseId,
                   performanceMap,
                   sessions,
@@ -387,8 +374,8 @@ export function WorkoutLogger({
                 );
                 const isPr = isNewExercisePr(
                   topSet,
-                  guidance.heaviestWeight,
-                  guidance.heaviestReps
+                  performance?.heaviestWeight ?? null,
+                  performance?.heaviestReps ?? null
                 );
 
                 return (
@@ -403,11 +390,7 @@ export function WorkoutLogger({
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {guidance.lastSummary && guidance.lastSessionDate
-                            ? `Last time (${formatShortDate(guidance.lastSessionDate)}): ${guidance.lastSummary}`
-                            : "No previous entries for this exercise."}
-                        </p>
+                        <ExercisePerformanceHint performance={performance} className="mt-1" />
                       </div>
                       <Button
                         type="button"
@@ -489,6 +472,16 @@ export function WorkoutLogger({
                 );
               })
             )}
+
+            {draftExercises.length > 0 ? (
+              <LogExercisePicker
+                exercises={exercises}
+                excludeIds={draftExercises.map((item) => item.exerciseId)}
+                disabled={isPending}
+                onSelect={addExercise}
+                compact
+              />
+            ) : null}
           </div>
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

@@ -245,6 +245,56 @@ export function getRecentHistoryFromSessions(
   return history;
 }
 
+export const NO_PREVIOUS_EXERCISE_DATA = "No previous data has been entered.";
+
+export function hasExercisePerformanceData(
+  performance: ExercisePerformance | null | undefined
+): boolean {
+  if (!performance) {
+    return false;
+  }
+
+  if (performance.heaviestWeight != null || performance.heaviestReps != null) {
+    return true;
+  }
+
+  return performance.recentHistory.length > 0;
+}
+
+export function formatHeaviestPerformance(
+  performance: ExercisePerformance | null | undefined
+): string | null {
+  if (!performance) {
+    return null;
+  }
+
+  let weight = performance.heaviestWeight;
+  let reps = performance.heaviestReps;
+  let date = performance.heaviestDate;
+
+  if (weight == null && performance.recentHistory[0]) {
+    weight = performance.recentHistory[0].topWeight;
+    reps = performance.recentHistory[0].topReps;
+    date = performance.recentHistory[0].sessionDate;
+  }
+
+  if (weight == null && reps == null) {
+    return null;
+  }
+
+  const dateSuffix = date ? ` (${formatShortDate(date)})` : "";
+
+  if (weight != null && reps != null) {
+    return `Heaviest logged: ${weight} lbs × ${reps} reps${dateSuffix}`;
+  }
+
+  if (weight != null) {
+    return `Heaviest logged: ${weight} lbs${dateSuffix}`;
+  }
+
+  return `Heaviest logged: ${reps} reps${dateSuffix}`;
+}
+
 export function formatExerciseHistoryDisplay(
   performance: ExercisePerformance | null | undefined
 ): string | null {

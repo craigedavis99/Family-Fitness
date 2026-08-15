@@ -12,14 +12,19 @@ type ExercisePickerProps = {
   exercises: Exercise[];
   disabled?: boolean;
   dayLabel?: string;
-  onSelect: (exerciseId: number, targetSets: number | null, targetReps: string) => void;
+  inModal?: boolean;
+  onSelect: (exerciseId: number, targetSets: number | null, targetReps: string, targetWeight: number | null) => void;
 };
 
-export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: ExercisePickerProps) {
+const selectClassName =
+  "select-field flex h-12 w-full rounded-xl border border-input bg-card/90 px-3.5 py-2 text-base shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm";
+
+export function ExercisePicker({ exercises, disabled, dayLabel, inModal = false, onSelect }: ExercisePickerProps) {
   const [search, setSearch] = useState("");
   const [exerciseId, setExerciseId] = useState("");
   const [targetSets, setTargetSets] = useState("3");
   const [targetReps, setTargetReps] = useState("8-12");
+  const [targetWeight, setTargetWeight] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newMuscleGroup, setNewMuscleGroup] = useState<string>(MUSCLE_GROUPS[0]);
@@ -58,7 +63,8 @@ export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: Exer
     onSelect(
       Number(exerciseId),
       targetSets ? Number(targetSets) : null,
-      targetReps
+      targetReps,
+      targetWeight.trim() ? Number(targetWeight) : null
     );
     setExerciseId("");
   }
@@ -84,8 +90,14 @@ export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: Exer
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-      {dayLabel ? (
+    <div
+      className={
+        inModal
+          ? "space-y-4"
+          : "space-y-4 rounded-xl border border-primary/20 bg-primary/[0.04] p-4 sm:p-5"
+      }
+    >
+      {!inModal && dayLabel ? (
         <p className="text-sm font-medium">
           Adding to <span className="text-primary">{dayLabel}</span>
         </p>
@@ -104,7 +116,7 @@ export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: Exer
         <Label htmlFor="exerciseId">Exercise</Label>
         <select
           id="exerciseId"
-          className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+          className={selectClassName}
           value={exerciseId}
           onChange={(e) => setExerciseId(e.target.value)}
           disabled={disabled}
@@ -122,7 +134,7 @@ export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: Exer
         </select>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="targetSets">Target sets</Label>
           <Input
@@ -144,20 +156,44 @@ export function ExercisePicker({ exercises, disabled, dayLabel, onSelect }: Exer
             disabled={disabled}
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="targetWeight">Target weight (lbs, optional)</Label>
+          <Input
+            id="targetWeight"
+            type="number"
+            min={0}
+            step="0.5"
+            value={targetWeight}
+            onChange={(e) => setTargetWeight(e.target.value)}
+            placeholder="e.g. 185"
+            disabled={disabled}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={handleAdd} disabled={disabled || !exerciseId}>
-          Add exercise
+        <Button type="button" className="flex-1 sm:flex-none" onClick={handleAdd} disabled={disabled || !exerciseId}>
+          Add to plan
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setShowNewForm((value) => !value)}
-          disabled={disabled}
-        >
-          {showNewForm ? "Cancel new exercise" : "Add new exercise"}
-        </Button>
+        {!inModal ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowNewForm((value) => !value)}
+            disabled={disabled}
+          >
+            {showNewForm ? "Cancel new exercise" : "New exercise"}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowNewForm((value) => !value)}
+            disabled={disabled}
+          >
+            {showNewForm ? "Cancel" : "New exercise"}
+          </Button>
+        )}
       </div>
 
       {showNewForm ? (

@@ -6,20 +6,30 @@ import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
-export default async function PlanPage() {
+type PlanPageProps = {
+  searchParams: Promise<{ expand?: string }>;
+};
+
+export default async function PlanPage({ searchParams }: PlanPageProps) {
   const profile = await requireReadySession();
+  const { expand } = await searchParams;
+  const expandPlanId = expand ? Number(expand) : undefined;
+
   const [plans, exercises, performanceMap] = await Promise.all([
     getUserPlans(profile.id),
     getActiveExercises(),
     getExercisePerformanceMap(profile.id),
   ]);
 
+  const validExpandId =
+    expandPlanId && plans.some((plan) => plan.id === expandPlanId) ? expandPlanId : undefined;
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Training"
         title="My Plan"
-        description="Build cycles or daily workouts. Expand a plan to edit days — last logged weights show under each exercise."
+        description="Expand a plan to edit days and exercises. Tap Add exercise on any day to build your workout."
       />
 
       <div className="stagger-1">
@@ -27,6 +37,7 @@ export default async function PlanPage() {
           initialPlans={plans}
           exercises={exercises}
           performanceMap={Object.fromEntries(performanceMap)}
+          initialExpandPlanId={validExpandId}
         />
       </div>
     </div>

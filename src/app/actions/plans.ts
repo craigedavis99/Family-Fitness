@@ -33,7 +33,11 @@ async function findOwnedDay(userId: string, dayId: number) {
   return null;
 }
 
-export async function createPlan(name: string, planKind: PlanKind = "cycle") {
+export async function createPlan(
+  name: string,
+  planKind: PlanKind = "cycle",
+  firstDayLabel?: string
+) {
   const profile = await requireReadySession();
   const supabase = await createClient();
   if (!supabase) {
@@ -63,6 +67,17 @@ export async function createPlan(name: string, planKind: PlanKind = "cycle") {
     const { error: dayError } = await supabase.from("plan_days").insert({
       plan_id: data.id,
       day_label: trimmedName,
+      day_order: 1,
+    });
+
+    if (dayError) {
+      await supabase.from("workout_plans").delete().eq("id", data.id);
+      return { error: dayError.message };
+    }
+  } else if (firstDayLabel?.trim()) {
+    const { error: dayError } = await supabase.from("plan_days").insert({
+      plan_id: data.id,
+      day_label: firstDayLabel.trim(),
       day_order: 1,
     });
 
@@ -243,6 +258,7 @@ export async function addPlanExercise(input: {
   exerciseId: number;
   targetSets?: number | null;
   targetReps?: string | null;
+  targetWeight?: number | null;
 }) {
   const profile = await requireReadySession();
   const supabase = await createClient();
@@ -261,17 +277,32 @@ export async function addPlanExercise(input: {
       ? 1
       : Math.max(...day.exercises.map((item) => item.sort_order ?? 0)) + 1;
 
-  const { data, error } = await supabase
+  const row: Record<string, unknown> = {
+    plan_day_id: input.planDayId,
+    exercise_id: input.exerciseId,
+    target_sets: input.targetSets ?? null,
+    target_reps: input.targetReps?.trim() || null,
+    sort_order: nextSort,
+  };
+
+  if (input.targetWeight != null) {
+    row.target_weight = input.targetWeight;
+  }
+
+  let { data, error } = await supabase
     .from("plan_exercises")
-    .insert({
-      plan_day_id: input.planDayId,
-      exercise_id: input.exerciseId,
-      target_sets: input.targetSets ?? null,
-      target_reps: input.targetReps?.trim() || null,
-      sort_order: nextSort,
-    })
+    .insert(row)
     .select("*, exercise:exercises(*)")
     .single();
+
+  if (error?.message?.includes("target_weight")) {
+    delete row.target_weight;
+    ({ data, error } = await supabase
+      .from("plan_exercises")
+      .insert(row)
+      .select("*, exercise:exercises(*)")
+      .single());
+  }
 
   if (error) {
     return { error: error.message };
@@ -285,6 +316,7 @@ export async function updatePlanExercise(input: {
   planExerciseId: number;
   targetSets?: number | null;
   targetReps?: string | null;
+  targetWeight?: number | null;
 }) {
   const profile = await requireReadySession();
   const supabase = await createClient();
@@ -302,13 +334,27 @@ export async function updatePlanExercise(input: {
     return { error: "Exercise not found in plan." };
   }
 
-  const { error } = await supabase
+  const updates: Record<string, unknown> = {
+    target_sets: input.targetSets ?? null,
+    target_reps: input.targetReps?.trim() || null,
+  };
+
+  if (input.targetWeight != null) {
+    updates.target_weight = input.targetWeight;
+  }
+
+  let { error } = await supabase
     .from("plan_exercises")
-    .update({
-      target_sets: input.targetSets ?? null,
-      target_reps: input.targetReps?.trim() || null,
-    })
+    .update(updates)
     .eq("id", input.planExerciseId);
+
+  if (error?.message?.includes("target_weight")) {
+    delete updates.target_weight;
+    ({ error } = await supabase
+      .from("plan_exercises")
+      .update(updates)
+      .eq("id", input.planExerciseId));
+  }
 
   if (error) {
     return { error: error.message };
@@ -399,6 +445,7 @@ export async function createExercise(input: {
   }
 
   revalidatePath("/plan");
+  revalidatePath("/log");
   return { success: true, exercise: data };
 }
 

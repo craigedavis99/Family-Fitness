@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireReadySession } from "@/lib/session";
 import { getPlanDayForPrint } from "@/lib/plan-server";
 import { getExercisePerformanceMap } from "@/lib/workout-server";
-import { formatExerciseHistoryCompact } from "@/lib/workout";
+import { ExercisePerformanceHint } from "@/components/plan/exercise-performance-hint";
 import {
   getPrintSetRowCount,
   splitExercisesForPrint,
@@ -25,21 +25,28 @@ type ExerciseBlockProps = {
   performance?: ExercisePerformance;
 };
 
+function formatPlanTarget(item: PlanExercise) {
+  const sets = item.target_sets ?? "—";
+  const reps = item.target_reps ?? "—";
+  if (item.target_weight != null) {
+    return `${sets} × ${reps} @ ${item.target_weight} lbs`;
+  }
+  return `${sets} × ${reps}`;
+}
+
 function ExerciseBlock({ item, setRowCount, performance }: ExerciseBlockProps) {
   const setRows = Array.from({ length: setRowCount }, (_, index) => index + 1);
-  const historyText = formatExerciseHistoryCompact(performance);
-  const suggestedWeight = performance?.recentHistory[0]?.topWeight;
+  const suggestedWeight =
+    item.target_weight ?? performance?.heaviestWeight ?? performance?.recentHistory[0]?.topWeight;
 
   return (
     <section className="print-exercise">
       <div className="print-exercise-header">
         <div>
           <h2 className="print-exercise-name">{item.exercise?.name ?? "Exercise"}</h2>
-          {historyText ? <p className="print-exercise-history">{historyText}</p> : null}
+          <ExercisePerformanceHint performance={performance} print />
         </div>
-        <p className="print-exercise-target">
-          {item.target_sets ?? "—"} × {item.target_reps ?? "—"}
-        </p>
+        <p className="print-exercise-target">{formatPlanTarget(item)}</p>
       </div>
       <table className="print-exercise-table">
         <thead>

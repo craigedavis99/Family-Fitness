@@ -18,7 +18,6 @@ async function requireAdmin() {
 function revalidateMetricTypePaths() {
   revalidatePath("/admin");
   revalidatePath("/home");
-  revalidatePath("/input");
 }
 
 export async function createMetricType(input: {

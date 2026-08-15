@@ -156,6 +156,7 @@ export type PlanExercise = {
   exercise_id: number;
   target_sets: number | null;
   target_reps: string | null;
+  target_weight: number | null;
   sort_order: number | null;
   exercise?: Exercise;
 };
@@ -217,7 +218,6 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Home" },
-  { href: "/input", label: "Input" },
   { href: "/plan", label: "Plan" },
   { href: "/log", label: "Log" },
   { href: "/admin", label: "Admin", adminOnly: true },

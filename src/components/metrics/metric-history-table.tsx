@@ -99,7 +99,7 @@ export function MetricHistoryTable({
   if (entries.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-border bg-card/60 px-4 py-8 text-center text-sm text-muted-foreground">
-        No entries yet. Use the Input tab to record your first value.
+        No entries yet. Use Add entry on Home to record your first value.
       </p>
     );
   }

@@ -4,8 +4,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireReadySession } from "@/lib/session";
 import {
-  buildPerformanceContext,
-  buildWeightContext,
   checkNewPr,
   getPersonalBestEntry,
   validateMetricValue,
@@ -16,31 +14,6 @@ import {
 } from "@/lib/metrics-server";
 import { resolveViewAsTarget } from "@/lib/view-as-server";
 import type { MetricEntry, MetricType } from "@/lib/types";
-
-export async function getMetricInputContext(metricTypeId: number) {
-  const profile = await requireReadySession();
-  const metricType = await getMetricTypeById(metricTypeId);
-
-  if (!metricType) {
-    return { error: "Metric type not found." };
-  }
-
-  const entries = await getMetricEntriesForType(profile.id, metricTypeId);
-  const latest = entries[0] ?? null;
-
-  let contextMessage: string;
-  if (metricType.name === "Weight") {
-    contextMessage = buildWeightContext(entries) ?? "No previous entries yet.";
-  } else {
-    contextMessage = buildPerformanceContext(entries, metricType);
-  }
-
-  return {
-    metricType,
-    latest,
-    contextMessage,
-  };
-}
 
 type SaveMetricInput = {
   metricTypeId: number;
@@ -94,7 +67,6 @@ export async function saveMetricEntry(input: SaveMetricInput) {
   }
 
   revalidatePath("/home");
-  revalidatePath("/input");
   revalidatePath(`/home/metric/${input.metricTypeId}`);
 
   return {
@@ -163,7 +135,6 @@ export async function updateMetricEntry(input: UpdateMetricInput) {
   }
 
   revalidatePath("/home");
-  revalidatePath("/input");
   revalidatePath(`/home/metric/${existing.metric_type_id}`);
 
   return { success: true };
@@ -194,7 +165,6 @@ export async function deleteMetricEntry(entryId: number) {
   }
 
   revalidatePath("/home");
-  revalidatePath("/input");
   if (existing?.metric_type_id) {
     revalidatePath(`/home/metric/${existing.metric_type_id}`);
   }

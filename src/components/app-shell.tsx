@@ -8,7 +8,6 @@ import {
   Home,
   LogOut,
   Settings,
-  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/types";
@@ -28,7 +27,6 @@ type AppShellProps = {
 
 const NAV_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   "/home": Home,
-  "/input": Target,
   "/plan": ClipboardList,
   "/log": Dumbbell,
   "/admin": Settings,

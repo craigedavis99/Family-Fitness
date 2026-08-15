@@ -111,6 +111,14 @@
     line-height: 1.2;
   }
 
+  .print-exercise-history-missing {
+    font-size: 6.5pt;
+    margin: 0.02in 0 0;
+    color: #b91c1c;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
   .print-exercise-name {
     font-size: 9pt;
     font-weight: 600;
@@ -253,6 +261,14 @@
     font-size: 0.6875rem;
     margin: 0.25rem 0 0;
     color: var(--muted-foreground);
+    line-height: 1.3;
+  }
+
+  .print-exercise-history-missing {
+    font-size: 0.6875rem;
+    margin: 0.25rem 0 0;
+    color: #b91c1c;
+    font-weight: 600;
     line-height: 1.3;
   }
 

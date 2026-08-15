@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { deleteWorkoutSession } from "@/app/actions/workouts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPerformanceSummary, formatShortDate } from "@/lib/workout";
@@ -59,6 +60,25 @@ function groupSetsByExercise(session: WorkoutSessionWithSets) {
 
 export function SessionHistory({ sessions, planDayOptions, onEdit }: SessionHistoryProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleDelete(session: WorkoutSessionWithSets) {
+    const label = sessionLabel(session, planDayOptions);
+    if (!window.confirm(`Delete "${label}" from ${formatShortDate(session.session_date)}?`)) {
+      return;
+    }
+
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteWorkoutSession(session.id);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      window.location.reload();
+    });
+  }
 
   if (sessions.length === 0) {
     return (
@@ -80,6 +100,12 @@ export function SessionHistory({ sessions, planDayOptions, onEdit }: SessionHist
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
+        {error ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+
         {sessions.map((session) => {
           const expanded = expandedId === session.id;
           const label = sessionLabel(session, planDayOptions);
@@ -87,20 +113,39 @@ export function SessionHistory({ sessions, planDayOptions, onEdit }: SessionHist
 
           return (
             <div key={session.id} className="rounded-lg border border-border">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                onClick={() => setExpandedId(expanded ? null : session.id)}
-              >
-                <div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  aria-expanded={expanded}
+                  onClick={() => setExpandedId(expanded ? null : session.id)}
+                >
                   <p className="font-medium">{label}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatShortDate(session.session_date)} · {exerciseGroups.length} exercise
                     {exerciseGroups.length === 1 ? "" : "s"}
                   </p>
+                </button>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setExpandedId(expanded ? null : session.id)}
+                  >
+                    {expanded ? "Collapse" : "Expand"}
+                  </button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    disabled={isPending}
+                    onClick={() => handleDelete(session)}
+                  >
+                    Delete
+                  </Button>
                 </div>
-                <span className="text-xs text-muted-foreground">{expanded ? "Collapse" : "Expand"}</span>
-              </button>
+              </div>
 
               {expanded ? (
                 <div className="space-y-4 border-t border-border px-4 py-4">
