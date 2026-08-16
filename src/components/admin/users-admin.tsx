@@ -124,8 +124,10 @@ export function UsersAdmin({ isAdmin }: UsersAdminProps) {
   }
 
   async function resetPassword(user: Profile) {
-    const newPassword = window.prompt(`Enter a temporary password for ${user.display_name}:`);
-    if (!newPassword) {
+    const newPassword = window.prompt(
+      `Enter a temporary password for ${user.display_name} (at least 8 characters):`
+    );
+    if (!newPassword?.trim()) {
       return;
     }
 
@@ -135,7 +137,7 @@ export function UsersAdmin({ isAdmin }: UsersAdminProps) {
     const response = await fetch(`/api/admin/users/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resetPassword: newPassword }),
+      body: JSON.stringify({ resetPassword: newPassword.trim() }),
     });
 
     const data = await response.json();
@@ -144,7 +146,36 @@ export function UsersAdmin({ isAdmin }: UsersAdminProps) {
       return;
     }
 
-    setSuccess(`Password reset for ${user.display_name}. They must change it on next login.`);
+    setSuccess(
+      `Password reset for ${user.display_name}. All active sessions were signed out — they should use the new password on a fresh login.`
+    );
+    await loadUsers();
+  }
+
+  async function deleteUser(user: Profile) {
+    const confirmed = window.confirm(
+      `Permanently delete "${user.display_name}"?\n\nThis removes their login, metrics, plans, and workout history. You can create a fresh account with the same email afterward.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    const response = await fetch(`/api/admin/users/${user.id}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      setError(data.error ?? "Failed to delete user.");
+      return;
+    }
+
+    setSuccess(
+      `${user.display_name} was deleted. Create a new account with the same email if you want a clean start.`
+    );
     await loadUsers();
   }
 
@@ -304,6 +335,9 @@ export function UsersAdmin({ isAdmin }: UsersAdminProps) {
                     onClick={() => toggleActive(user)}
                   >
                     {user.is_active ? "Deactivate" : "Reactivate"}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => deleteUser(user)}>
+                    Delete
                   </Button>
                 </div>
               </div>
