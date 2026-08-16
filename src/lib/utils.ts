@@ -11,3 +11,9 @@ export function isSupabaseConfigured() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 }
+
+/** Strip trailing slashes and accidental /rest/v1 from pasted Supabase dashboard URLs. */
+export function getSupabaseUrl() {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  return raw.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
+}

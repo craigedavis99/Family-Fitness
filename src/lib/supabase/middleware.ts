@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "@/lib/utils";
+import { getSupabaseUrl, isSupabaseConfigured } from "@/lib/utils";
 
 /** Refresh Supabase session cookies only — no redirects (avoids redirect loops). */
 export async function updateSession(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
